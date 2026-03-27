@@ -45,7 +45,7 @@ def fetch_trending_videos(pages=2):
 
 
 def extract_raw_data(data):
-    file_name = f"trending_videos_{datetime.now().date()}.json"
+    file_name = f"raw_data/trending_videos_{datetime.now().date()}.json"
 
     with open(file_name, "w") as f:
         json.dump(data, f, indent=4)
