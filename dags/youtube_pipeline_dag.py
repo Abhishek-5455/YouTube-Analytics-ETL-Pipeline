@@ -5,7 +5,7 @@ import logging
 
 from youtube_extract import fetch_trending_videos
 from youtube_transform import transform_videos
-from youtube_load import load_to_postgres
+from youtube_load import create_table, load_to_postgres
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +28,7 @@ def transform_task(**context):
 def load_task(**context):
     logger.info("Starting load task")
     clean = context['ti'].xcom_pull(key='clean_data')
+    create_table() 
     load_to_postgres(clean)
     logger.info("Load task completed")
 

@@ -4,20 +4,38 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+def get_connection():
+    return psycopg2.connect(
+        host="postgres",
+        database="youtube_analytics",
+        user="airflow",
+        password="airflow"
+    )
+
+def create_table():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS youtube_videos (
+        video_id TEXT PRIMARY KEY,
+        title TEXT,
+        channel TEXT,
+        published_at TIMESTAMP,
+        views BIGINT,
+        likes BIGINT,
+        comments BIGINT,
+        inserted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    """)
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
 def load_to_postgres(records):
     logger.info(f"Starting load of {len(records)} records to PostgreSQL")
-    try:
-        conn = psycopg2.connect(
-            host="postgres",   # container name
-            database="airflow",
-            user="airflow",
-            password="airflow"
-        )
-        logger.info("Connected to PostgreSQL")
-    except Exception as e:
-        logger.error(f"Failed to connect to PostgreSQL: {e}")
-        raise
-
+    conn = get_connection()
     cursor = conn.cursor()
 
     insert_query = """
@@ -29,31 +47,20 @@ def load_to_postgres(records):
     ON CONFLICT (video_id) DO NOTHING;
     """
 
-    inserted_count = 0
     for r in records:
-        try:
-            cursor.execute(insert_query, (
-                r["video_id"],
-                r["title"],
-                r["channel"],
-                r["published_at"],
-                r["views"],
-                r["likes"],
-                r["comments"]
-            ))
-            inserted_count += 1
-        except Exception as e:
-            logger.error(f"Failed to insert record {r['video_id']}: {e}")
+        cursor.execute(insert_query, (
+            r["video_id"],
+            r["title"],
+            r["channel"],
+            r["published_at"],
+            r["views"],
+            r["likes"],
+            r["comments"]
+        ))
 
-    try:
-        conn.commit()
-        logger.info(f"Committed {inserted_count} records to PostgreSQL")
-    except Exception as e:
-        logger.error(f"Failed to commit: {e}")
-        conn.rollback()
-        raise
-
+    
     print("Data loaded to PostgreSQL successfully.")
+    conn.commit()
     cursor.close()
     conn.close()
     logger.info("Connection closed")

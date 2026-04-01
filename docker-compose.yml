@@ -6,7 +6,7 @@ x-airflow-common:
   environment:
     &airflow-env
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
-    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/youtube_analytics
     AIRFLOW__CORE__FERNET_KEY: ''
     AIRFLOW__CORE__LOAD_EXAMPLES: 'False'
     _PIP_ADDITIONAL_REQUIREMENTS: requests psycopg2-binary
@@ -28,7 +28,7 @@ services:
       POSTGRES_PASSWORD: airflow
       POSTGRES_DB: youtube_analytics
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres-db-volume:/var/lib/postgresql/data
 
